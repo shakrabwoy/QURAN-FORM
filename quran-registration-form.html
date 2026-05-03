@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quran Class Registration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f7f3ec;
+      --surface:   #ffffff;
+      --border:    #ddd3c0;
+      --border-f:  #a07840;
+      --green:     #1a4a2e;
+      --green-l:   #2a6644;
+      --gold:      #b8882a;
+      --gold-l:    #d4a84a;
+      --text:      #1e1810;
+      --muted:     #7a6a50;
+      --light:     #f0e8d8;
+      --white:     #ffffff;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      font-size: 16px;
+    }
+
+    /* Geometric pattern background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(176,136,42,0.04) 40px, rgba(176,136,42,0.04) 41px),
+        repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(26,74,46,0.03) 40px, rgba(26,74,46,0.03) 41px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── PAGE SHELL ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px 72px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .arabic-ornament {
+      font-size: 2.8rem;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 6px;
+      line-height: 1;
+      letter-spacing: 0.08em;
+    }
+
+    .bismillah {
+      font-size: 1.15rem;
+      color: var(--muted);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      margin-bottom: 28px;
+      letter-spacing: 0.04em;
+    }
+
+    .header-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .header-divider::before,
+    .header-divider::after {
+      content: '';
+      height: 1px;
+      width: 80px;
+      background: linear-gradient(to right, transparent, var(--gold));
+    }
+
+    .header-divider::after {
+      background: linear-gradient(to left, transparent, var(--gold));
+    }
+
+    .diamond {
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      transform: rotate(45deg);
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 600;
+      color: var(--green);
+      line-height: 1.1;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .header-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 48px 52px;
+      box-shadow: 0 2px 32px rgba(26,74,46,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      animation: fadeUp 0.7s ease 0.1s both;
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 32px 24px; }
+    }
+
+    /* ── SECTION HEADINGS ── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 36px 0 24px;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    .section-label:first-of-type { margin-top: 0; }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .section-num {
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--green);
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+
+    /* ── FIELDS ── */
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 540px) {
+      .row-2 { grid-template-columns: 1fr; gap: 0; }
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 7px;
+      font-weight: 500;
+    }
+
+    label .req { color: var(--gold); margin-left: 2px; }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      padding: 12px 14px;
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    input::placeholder, textarea::placeholder { color: #bfb09a; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-f);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(176,136,42,0.1);
+    }
+
+    select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 4.5L11 1' stroke='%23a07840' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 38px;
+    }
+
+    select option { background: #fff; color: var(--text); }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    /* ── RADIO / CHECKBOX GROUPS ── */
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--text);
+      user-select: none;
+    }
+
+    .check-item:hover { border-color: var(--border-f); background: #fef9f0; }
+
+    .check-item input[type="checkbox"],
+    .check-item input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      accent-color: var(--green);
+      padding: 0;
+      background: none;
+      border: none;
+      box-shadow: none;
+    }
+
+    .check-item input:checked + span { color: var(--green); font-weight: 500; }
+    .check-item:has(input:checked) { border-color: var(--green); background: #eef4f0; }
+
+    /* ── LEVEL CARDS ── */
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .level-card {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .level-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .level-inner {
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      padding: 16px 14px;
+      text-align: center;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      background: var(--bg);
+    }
+
+    .level-card:hover .level-inner { border-color: var(--gold-l); background: #fef9f0; }
+    .level-card input:checked + .level-inner {
+      border-color: var(--green);
+      background: #eef4f0;
+      box-shadow: 0 0 0 2px rgba(26,74,46,0.12);
+    }
+
+    .level-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+    .level-name { font-size: 0.82rem; font-weight: 500; color: var(--green); display: block; margin-bottom: 3px; }
+    .level-desc { font-size: 0.72rem; color: var(--muted); font-weight: 300; line-height: 1.4; }
+
+    /* ── PREFERRED TIME ── */
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    /* ── SUBMIT ── */
+    .submit-wrap {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .submit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 48px;
+      background: var(--green);
+      border: 1px solid var(--green-l);
+      color: #fff;
+      font-family: 'Jost', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+      min-width: 240px;
+    }
+
+    .submit-btn:hover {
+      background: var(--green-l);
+      box-shadow: 0 6px 24px rgba(26,74,46,0.3);
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:active { transform: translateY(0); }
+
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .submit-btn.loading .spinner { display: block; }
+
+    /* ── STATUS ── */
+    .status {
+      display: none;
+      margin-top: 24px;
+      padding: 16px 20px;
+      border-radius: 3px;
+      font-size: 0.9rem;
+      text-align: center;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .status.success {
+      display: block;
+      background: #eef4f0;
+      border: 1px solid #4a8a4a;
+      color: var(--green);
+    }
+
+    .status.error {
+      display: block;
+      background: #fdf0f0;
+      border: 1px solid #c06060;
+      color: #8a2020;
+    }
+
+    /* ── SETUP BANNER ── */
+    .setup-banner {
+      background: #fffbf0;
+      border: 1px solid var(--gold);
+      border-left: 4px solid var(--gold);
+      padding: 16px 20px;
+      border-radius: 3px;
+      margin-bottom: 32px;
+      font-size: 0.85rem;
+      color: #6a5010;
+      line-height: 1.7;
+    }
+
+    .setup-banner strong { display: block; color: var(--gold); margin-bottom: 6px; font-size: 0.9rem; }
+    .setup-banner code { background: rgba(0,0,0,0.07); padding: 1px 6px; border-radius: 3px; font-size: 0.78rem; font-family: monospace; }
+    .setup-banner a { color: var(--gold); }
+    .setup-banner ol { margin: 8px 0 0 18px; }
+    .setup-banner li { margin-bottom: 4px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      animation: fadeUp 0.7s ease 0.2s both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SUCCESS SCREEN ── */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 60px 40px;
+    }
+
+    .success-screen .check-circle {
+      width: 72px;
+      height: 72px;
+      background: #eef4f0;
+      border: 2px solid var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 24px;
+      animation: popIn 0.4s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .success-screen h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+
+    .success-screen p {
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.7;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <header class="header">
+    <span class="arabic-ornament">﷽</span>
+    <p class="bismillah">In the Name of Allah, the Most Gracious, the Most Merciful</p>
+    <div class="header-divider"><div class="diamond"></div></div>
+    <h1>Quran Class Registration</h1>
+    <p class="header-sub">Join our learning circle — all levels welcome</p>
+  </header>
+
+  <!-- CARD -->
+  <div class="card">
+
+    <!-- Setup Banner — remove after configuring EmailJS -->
+    <div class="setup-banner" id="setupBanner">
+      <strong>⚙️ Setup Required — 3 easy steps</strong>
+      <ol>
+        <li>Create a free account at <a href="https://www.emailjs.com" target="_blank">emailjs.com</a></li>
+        <li>Connect your Gmail under <strong>Email Services</strong> → get your <code>Service ID</code></li>
+        <li>Create a template (use variable names from the form) → get your <code>Template ID</code></li>
+      </ol>
+      <br>Then replace in the script below: <code>YOUR_PUBLIC_KEY</code>, <code>YOUR_SERVICE_ID</code>, <code>YOUR_TEMPLATE_ID</code>
+    </div>
+
+    <!-- FORM -->
+    <form id="regForm" novalidate>
+
+      <!-- 1. Personal Info -->
+      <div class="section-label"><span class="section-num">1</span> Personal Information</div>
+
+      <div class="row-2">
+        <div class="field">
+          <label for="full_name">Full Name <span class="req">*</span></label>
+          <input type="text" id="full_name" name="full_name" placeholder="Your full name" required />
+        </div>
+        <div class="field">
+          <label for="age">Age <span class="req">*</span></label>
+          <input type="number" id="age" name="age" placeholder="e.g. 24" min="5" max="99" required />
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label for="email">Email Address <span class="req">*</span></label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="phone">Phone / WhatsApp</label>
+          <input type="tel" id="phone" name="phone" placeholder="+1 234 567 8900" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="gender">Gender <span class="req">*</span></label>
+        <select id="gender" name="gender" required>
+          <option value="" disabled selected>Select gender</option>
+          <option>Brother</option>
+          <option>Sister</option>
+          <option>Prefer not to say</option>
+        </select>
+      </div>
+
+      <!-- 2. Quran Level -->
+      <div class="section-label"><span class="section-num">2</span> Quran Level</div>
+
+      <div class="field">
+        <label>Where are you currently? <span class="req">*</span></label>
+        <div class="level-grid">
+
+          <label class="level-card">
+            <input type="radio" name="quran_level" value="Complete Beginner" required />
+            <div class="level-inner">
+              <span class="level-icon">🌱</span>
+              <span class="level-name">Beginner</span>
+              <span class="level-desc">Learning Arabic letters & sounds</span>
+            </div>
+          </label>
+
+          <label class="level-card">
+            <input type="radio" name="quran_level" value="Noorani / Qaida" />
+            <div class="level-inner">
+              <span class="level-icon">📖</span>
+              <span class="level-name">Noorani / Qa'ida</span>
+              <span class="level-desc">Completing foundational reading</span>
+            </div>
+          </label>
+
+          <label class="level-card">
+            <input type="radio" name="quran_level" value="Intermediate — Reading with basic Tajweed" />
+            <div class="level-inner">
+              <span class="level-icon">🕌</span>
+              <span class="level-name">Intermediate</span>
+              <span class="level-desc">Reading with basic Tajweed rules</span>
+            </div>
+          </label>
+
+          <label class="level-card">
+            <input type="radio" name="quran_level" value="Advanced — Refining Tajweed & memorisation" />
+            <div class="level-inner">
+              <span class="level-icon">⭐</span>
+              <span class="level-name">Advanced</span>
+              <span class="level-desc">Refining Tajweed & memorisation</span>
+            </div>
+          </label>
+
+          <label class="level-card">
+            <input type="radio" name="quran_level" value="Hafiz — Completing / revising Hifz" />
+            <div class="level-inner">
+              <span class="level-icon">🏅</span>
+              <span class="level-name">Hafiz</span>
+              <span class="level-desc">Completing or revising Hifz</span>
+            </div>
+          </label>
+
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="current_juz">Current Surah / Juz (if applicable)</label>
+        <input type="text" id="current_juz" name="current_juz" placeholder="e.g. Surah Al-Baqarah / Juz 2" />
+      </div>
+
+      <div class="field">
+        <label>Learning Goals (select all that apply)</label>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="goal_tajweed" value="Tajweed"/><span>Tajweed Rules</span></label>
+          <label class="check-item"><input type="checkbox" name="goal_hifz" value="Memorisation"/><span>Memorisation</span></label>
+          <label class="check-item"><input type="checkbox" name="goal_reading" value="Fluent Reading"/><span>Fluent Reading</span></label>
+          <label class="check-item"><input type="checkbox" name="goal_translation" value="Translation"/><span>Translation</span></label>
+          <label class="check-item"><input type="checkbox" name="goal_tafsir" value="Tafsir"/><span>Tafsir</span></label>
+          <label class="check-item"><input type="checkbox" name="goal_arabic" value="Arabic Language"/><span>Arabic Language</span></label>
+        </div>
+      </div>
+
+      <!-- 3. Availability -->
+      <div class="section-label"><span class="section-num">3</span> Availability</div>
+
+      <div class="field">
+        <label>Preferred Days <span class="req">*</span></label>
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" name="day_mon" value="Monday"/><span>Monday</span></label>
+          <label class="check-item"><input type="checkbox" name="day_tue" value="Tuesday"/><span>Tuesday</span></label>
+          <label class="check-item"><input type="checkbox" name="day_wed" value="Wednesday"/><span>Wednesday</span></label>
+          <label class="check-item"><input type="checkbox" name="day_thu" value="Thursday"/><span>Thursday</span></label>
+          <label class="check-item"><input type="checkbox" name="day_fri" value="Friday"/><span>Friday</span></label>
+          <label class="check-item"><input type="checkbox" name="day_sat" value="Saturday"/><span>Saturday</span></label>
+          <label class="check-item"><input type="checkbox" name="day_sun" value="Sunday"/><span>Sunday</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Preferred Time Slots <span class="req">*</span></label>
+        <div class="time-grid">
+          <label class="check-item"><input type="checkbox" name="time_fajr" value="After Fajr (Dawn)"/><span>After Fajr</span></label>
+          <label class="check-item"><input type="checkbox" name="time_morning" value="Morning (8–12)"/><span>Morning 8–12</span></label>
+          <label class="check-item"><input type="checkbox" name="time_afternoon" value="Afternoon (12–4)"/><span>Afternoon 12–4</span></label>
+          <label class="check-item"><input type="checkbox" name="time_evening" value="Evening (4–8)"/><span>Evening 4–8</span></label>
+          <label class="check-item"><input type="checkbox" name="time_isha" value="After Isha (Night)"/><span>After Isha</span></label>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label for="timezone">Your Timezone <span class="req">*</span></label>
+          <select id="timezone" name="timezone" required>
+            <option value="" disabled selected>Select timezone</option>
+            <option>GMT (London)</option>
+            <option>GMT+1 (West Africa / Lagos)</option>
+            <option>GMT+2 (Cairo / EAT)</option>
+            <option>GMT+3 (Nairobi / Riyadh)</option>
+            <option>GMT+4 (UAE / Dubai)</option>
+            <option>GMT+5 (Pakistan)</option>
+            <option>GMT+5:30 (India)</option>
+            <option>GMT+6 (Bangladesh)</option>
+            <option>GMT+7 (Jakarta)</option>
+            <option>GMT+8 (Malaysia / Singapore)</option>
+            <option>GMT-5 (Eastern US/Canada)</option>
+            <option>GMT-6 (Central US)</option>
+            <option>GMT-7 (Mountain US)</option>
+            <option>GMT-8 (Pacific US)</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="session_frequency">Preferred Session Frequency</label>
+          <select id="session_frequency" name="session_frequency">
+            <option value="" disabled selected>How often?</option>
+            <option>Once a week</option>
+            <option>Twice a week</option>
+            <option>3× a week</option>
+            <option>Daily</option>
+            <option>Flexible</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 4. Additional Info -->
+      <div class="section-label"><span class="section-num">4</span> Additional Information</div>
+
+      <div class="field">
+        <label for="how_heard">How did you hear about us?</label>
+        <select id="how_heard" name="how_heard">
+          <option value="" disabled selected>Select one</option>
+          <option>Social Media</option>
+          <option>Friend / Family Referral</option>
+          <option>Mosque / Islamic Centre</option>
+          <option>WhatsApp Group</option>
+          <option>Online Search</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="special_needs">Any special requirements or notes?</label>
+        <textarea id="special_needs" name="special_needs" placeholder="E.g. I have a speech impediment, I prefer a female teacher, I'm learning with my child…"></textarea>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-wrap">
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span class="btn-text">Submit Registration</span>
+          <div class="spinner"></div>
+        </button>
+
+        <div class="status" id="statusMsg"></div>
+      </div>
+
+    </form>
+
+    <!-- Success Screen (shown after submission) -->
+    <div class="success-screen" id="successScreen">
+      <div class="check-circle">✓</div>
+      <h2>JazakAllahu Khayran!</h2>
+      <p>Your registration has been received. We'll be in touch within 48 hours, in sha Allah.</p>
+    </div>
+
+  </div><!-- /card -->
+
+  <div class="footer">
+    ◈ &nbsp; May Allah make the Quran the light of our hearts &nbsp; ◈
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  // ════════════════════════════════════════════════
+  //  EMAILJS CONFIGURATION — replace these 3 values
+  // ════════════════════════════════════════════════
+  const EMAILJS_PUBLIC_KEY  = 'DEFVSVWn9ENzvVjQJ';
+  const EMAILJS_SERVICE_ID  = 'service_j3esf96';
+  const EMAILJS_TEMPLATE_ID = 'template_9nou2fh';
+  // ════════════════════════════════════════════════
+
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+  const form       = document.getElementById('regForm');
+  const submitBtn  = document.getElementById('submitBtn');
+  const statusMsg  = document.getElementById('statusMsg');
+  const setupBanner= document.getElementById('setupBanner');
+
+  // Hide setup banner once keys are filled
+  if (EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') setupBanner.style.display = 'none';
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusMsg.className = 'status';
+    statusMsg.style.display = 'none';
+
+    // ── Collect checkbox / radio values ──────────
+    const level = form.querySelector('input[name="quran_level"]:checked');
+    if (!level) {
+      showStatus('error', 'Please select your current Quran level.');
+      return;
+    }
+
+    const days = [...form.querySelectorAll('input[type=checkbox][name^="day_"]:checked')]
+                   .map(el => el.value).join(', ') || 'None selected';
+    const times = [...form.querySelectorAll('input[type=checkbox][name^="time_"]:checked')]
+                   .map(el => el.value).join(', ') || 'None selected';
+    const goals = [...form.querySelectorAll('input[type=checkbox][name^="goal_"]:checked')]
+                   .map(el => el.value).join(', ') || 'None selected';
+
+    // Basic validation
+    const required = ['full_name','age','email','gender','timezone'];
+    for (const id of required) {
+      if (!form[id]?.value?.trim()) {
+        showStatus('error', `Please fill in all required fields.`);
+        form[id]?.focus();
+        return;
+      }
+    }
+
+    // ── Build template params ──────────────────────
+    const params = {
+      full_name:         form.full_name.value.trim(),
+      age:               form.age.value.trim(),
+      email:             form.email.value.trim(),
+      phone:             form.phone.value.trim() || 'Not provided',
+      gender:            form.gender.value,
+      quran_level:       level.value,
+      current_juz:       form.current_juz.value.trim() || 'N/A',
+      learning_goals:    goals,
+      preferred_days:    days,
+      preferred_times:   times,
+      timezone:          form.timezone.value,
+      session_frequency: form.session_frequency.value || 'Not specified',
+      how_heard:         form.how_heard.value || 'Not specified',
+      special_needs:     form.special_needs.value.trim() || 'None',
+    };
+
+    // ── Validate not using placeholder keys ────────
+    if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+      showStatus('error', '⚙️ Setup needed: please add your EmailJS credentials in the script (see the yellow banner above).');
+      return;
+    }
+
+    // ── Send ───────────────────────────────────────
+    submitBtn.classList.add('loading');
+    submitBtn.disabled = true;
+
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params);
+      form.style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      showStatus('error', 'Something went wrong. Please try again or contact us directly.');
+    } finally {
+      submitBtn.classList.remove('loading');
+      submitBtn.disabled = false;
+    }
+  });
+
+  function showStatus(type, msg) {
+    statusMsg.className = 'status ' + type;
+    statusMsg.textContent = msg;
+    statusMsg.style.display = 'block';
+    statusMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+
+</body>
+</html>
